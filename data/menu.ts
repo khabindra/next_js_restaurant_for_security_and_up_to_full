@@ -1,0 +1,173 @@
+
+// src/data/menu.ts
+import { MenuItem } from '@/types/menu';
+
+export const menuItems: MenuItem[] = [
+  // Starters
+  {
+    id: '1',
+    name: 'Bruschetta al Pomodoro',
+    description: 'Toasted bread topped with fresh tomatoes, garlic, basil, and extra virgin olive oil.',
+    price: 450,
+    image: 'https://images.unsplash.com/photo-1541529086526-db283c563270',
+    category: 'starter',
+  },
+  {
+    id: '2',
+    name: 'Caesar Salad',
+    description: 'Crisp romaine, parmesan shavings, croutons, and our classic house dressing.',
+    price: 550,
+    image: 'https://images.unsplash.com/photo-1546793665-c74683f339c1',
+    category: 'starter',
+  },
+  {
+    id: '3',
+    name: 'Arancini',
+    description: 'Deep-fried risotto balls stuffed with mozzarella and served with marinara dip.',
+    price: 600,
+    image: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141',
+    category: 'starter',
+  },
+  {
+    id: '4',
+    name: 'Minestrone Soup',
+    description: 'A hearty, traditional Italian vegetable soup with fresh seasonal greens.',
+    price: 400,
+    image: 'https://i0.wp.com/kristineskitchenblog.com/wp-content/uploads/2022/02/minestrone-soup-22-2.jpg?resize=768%2C1152&ssl=1',
+    category: 'starter',
+  },
+  {
+    id: '5',
+    name: 'Burrata & Prosciutto',
+    description: 'Creamy burrata cheese served with aged prosciutto di Parma and arugula.',
+    price: 850,
+    image: 'https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62',
+    category: 'starter',
+  },
+
+  // Mains
+  {
+    id: '6',
+    name: 'Grilled Salmon',
+    description: 'Norwegian salmon fillet with lemon butter sauce and seasonal vegetables.',
+    price: 1450,
+    image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288',
+    category: 'main',
+  },
+  {
+    id: '7',
+    name: 'Spaghetti Carbonara',
+    description: 'Traditional Roman pasta with guanciale, egg yolk, pecorino, and black pepper.',
+    price: 950,
+    image: 'https://images.unsplash.com/photo-1612874742237-6526221588e3',
+    category: 'main',
+  },
+  {
+    id: '8',
+    name: 'Margherita Pizza',
+    description: 'Wood-fired Neapolitan crust with San Marzano tomatoes, fresh mozzarella, and basil.',
+    price: 850,
+    image: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d',
+    category: 'main',
+  },
+  {
+    id: '9',
+    name: 'Chicken Piccata',
+    description: 'Pan-seared chicken breast in a lemon-caper white wine sauce.',
+    price: 1100,
+    image: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d',
+    category: 'main',
+  },
+  {
+    id: '10',
+    name: 'Risotto ai Funghi',
+    description: 'Creamy Arborio rice slow-cooked with wild mushrooms and truffle oil.',
+    price: 1050,
+    image: 'https://images.unsplash.com/photo-1476124369491-e7addf5db371',
+    category: 'main',
+  },
+  {
+    id: '11',
+    name: 'Lasagna Bolognese',
+    description: 'Layers of fresh pasta, slow-cooked beef ragù, béchamel, and parmesan.',
+    price: 1000,
+    image: 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3',
+    category: 'main',
+  },
+  {
+    id: '12',
+    name: 'Osso Buco',
+    description: 'Braised veal shanks in a rich white wine, tomato, and vegetable broth.',
+    price: 1650,
+    image: 'https://images.unsplash.com/photo-1548940740-204726a19be3',
+    category: 'main',
+  },
+  {
+    id: '13',
+    name: 'Grilled Lamb Chops',
+    description: 'Herb-crusted lamb chops served with roasted potatoes and mint chutney.',
+    price: 1800,
+    image: 'https://images.unsplash.com/photo-1514516345957-556ca7d90a29',
+    category: 'main',
+  },
+
+  // Desserts
+  {
+    id: '14',
+    name: 'Tiramisu',
+    description: 'Classic Italian dessert layered with espresso-soaked ladyfingers and mascarpone.',
+    price: 500,
+    image: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9',
+    category: 'dessert',
+  },
+  {
+    id: '15',
+    name: 'Panna Cotta',
+    description: 'Silky vanilla bean cream topped with a vibrant berry compote.',
+    price: 450,
+    image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777',
+    category: 'dessert',
+  },
+  {
+    id: '16',
+    name: 'Gelato Trio',
+    description: 'Three scoops of house-made gelato. Ask your server for today\'s flavors.',
+    price: 400,
+    image: 'https://images.unsplash.com/photo-1501443762994-82bd5dace89a',
+    category: 'dessert',
+  },
+  {
+    id: '17',
+    name: 'Cannoli Siciliani',
+    description: 'Crispy pastry shells filled with sweet ricotta, chocolate chips, and pistachios.',
+    price: 450,
+    image: 'https://tse4.mm.bing.net/th/id/OIP.I-rM2Lj86fp9aZ9y8fBHywHaHa?rs=1&pid=ImgDetMain&o=7&rm=3',
+    category: 'dessert',
+  },
+
+  // Drinks
+  {
+    id: '18',
+    name: 'Aperol Spritz',
+    description: 'The iconic Italian aperitif with Aperol, prosecco, and a splash of soda.',
+    price: 650,
+    image: 'https://images.unsplash.com/photo-1551538827-9c037cb4f32a',
+    category: 'drink',
+  },
+  {
+    id: '19',
+    name: 'Classic Negroni',
+    description: 'A bold and bitter mix of gin, sweet vermouth, and Campari.',
+    price: 700,
+    image: 'https://images.unsplash.com/photo-1556855810-ac404aa91e85',
+    category: 'drink',
+  },
+  {
+    id: '20',
+    name: 'Limoncello Sparkling',
+    description: 'Refreshing house-made limoncello mixed with sparkling water and fresh mint.',
+    price: 550,
+    image: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd',
+    category: 'drink',
+  },
+];
