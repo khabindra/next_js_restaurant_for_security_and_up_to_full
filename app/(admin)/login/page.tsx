@@ -1,5 +1,5 @@
 // app/(admin)/login/page.tsx
-import { login } from "@/app/(admin)/actions/contacts/route"
+import { login } from "@/app/(admin)/actions/auth/auth"
 interface PageProps {
   searchParams: Promise<{ error?: string }>;
 }

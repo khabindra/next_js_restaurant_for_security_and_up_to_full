@@ -4,7 +4,7 @@
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
-import { assertAdminUser } from '@/app/(admin)/actions/contacts/route';
+import {assertAdminUser} from '@/app/(admin)/actions/auth/auth';
 import { reservationSchema } from '@/lib/validations/reservation';
 import { getClientIpHash, reservationRateLimiter } from '@/lib/rateLimit';
 

@@ -1,7 +1,7 @@
 // components/SignOutButton.tsx
 'use client'
 
-import { signOut } from '@/app/(admin)/actions/contacts/route'
+import {signOut} from '@/app/(admin)/actions/auth/auth'
 
 export default function SignOutButton() {
   return (
