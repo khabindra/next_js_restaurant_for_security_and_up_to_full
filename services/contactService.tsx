@@ -1,18 +1,19 @@
+// services/contactService.ts
 
-import { ContactMessage } from "@/types/contact";
+import { ContactInput } from '@/lib/validations/contact';
 
-export async function getContacts(): Promise<ContactMessage[]> {
-  const res = await fetch('/api/contacts');
-  if (!res.ok) throw new Error('Failed to fetch contacts');
-  return res.json();
-}
-
-export async function createContact(data: Omit<ContactMessage, 'id' | 'createdAt'>) {
+export async function createContact(data: ContactInput) {
   const res = await fetch('/api/contacts', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Failed to create contact');
-  return res.json() as Promise<ContactMessage>;
+  
+  const result = await res.json();
+  
+  if (!res.ok) {
+    throw new Error(result.error || 'Failed to submit contact card');
+  }
+  
+  return result as { success: boolean };
 }

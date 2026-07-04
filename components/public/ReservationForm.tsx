@@ -1,3 +1,4 @@
+// components/public/ReservationForm.tsx
 'use client';
 
 import { useState } from 'react';
@@ -5,7 +6,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import TextArea from '@/components/ui/TextArea';
 import { isEmail, isPhone } from '@/lib/validations';
-import { createReservationAction } from '@/app/(admin)/actions/reservation/route'; // ⚡ Direct Import
+import { createReservationAction } from '@/app/(admin)/actions/reservation/route';
 
 type FormErrors = {
   name?: string;
@@ -25,8 +26,11 @@ export default function ReservationForm() {
     time: '',
     guests: 2,
     notes: '',
+    honeypot: '', // ⚡ Added honeypot to state
   });
+  
   const [errors, setErrors] = useState<FormErrors>({});
+  const [serverError, setServerError] = useState<string | null>(null); // ⚡ Added server error state
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -44,16 +48,21 @@ export default function ReservationForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setServerError(null);
     if (!validate()) return;
 
     setIsSubmitting(true);
+    
+    // Pass the entire form state, including the honeypot
     const result = await createReservationAction(form);
+    
     setIsSubmitting(false);
 
     if (result.success) {
       setSuccess(true);
     } else {
-      alert('Something went wrong. Please try again.');
+      // Capture ratelimit or server errors to show to the user
+      setServerError(result.error || 'Something went wrong. Please try again.');
     }
   };
 
@@ -72,7 +81,7 @@ export default function ReservationForm() {
         <button 
           onClick={() => {
             setSuccess(false);
-            setForm({ name: '', email: '', phone: '', date: '', time: '', guests: 2, notes: '' });
+            setForm({ name: '', email: '', phone: '', date: '', time: '', guests: 2, notes: '', honeypot: '' });
           }}
           className="mt-10 text-xs font-medium uppercase tracking-[0.15em] text-neutral-400 hover:text-amber-600 transition-colors duration-300"
         >
@@ -84,6 +93,32 @@ export default function ReservationForm() {
 
   return (
     <form onSubmit={handleSubmit} className="w-full space-y-6 md:space-y-8">
+      
+      {/* ⚡ Display server/rate-limit errors gracefully */}
+      {serverError && (
+        <div className="p-4 rounded-md bg-red-50 border border-red-100 text-sm text-red-600">
+          {serverError}
+        </div>
+      )}
+
+      {/* ⚡ HONEYPOT FIELD (Hidden from real users, visible to bots) */}
+      <div 
+        className="absolute left-[-9999px] top-[-9999px]" 
+        aria-hidden="true"
+        style={{ opacity: 0, position: 'absolute', zIndex: -1 }}
+      >
+        <label htmlFor="reservation-hp">Leave this field blank</label>
+        <input
+          id="reservation-hp"
+          type="text"
+          name="honeypot"
+          tabIndex={-1}
+          autoComplete="off"
+          value={form.honeypot}
+          onChange={(e) => setForm({ ...form, honeypot: e.target.value })}
+        />
+      </div>
+
       <Input
         id="name"
         label="Full Name"
@@ -133,7 +168,7 @@ export default function ReservationForm() {
           label="Party Size"
           type="number"
           min={1}
-          max={20}
+          max={50}
           value={form.guests}
           onChange={(e) => setForm({ ...form, guests: parseInt(e.target.value, 10) || 1 })}
           error={errors.guests}

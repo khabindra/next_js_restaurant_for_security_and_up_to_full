@@ -1,7 +1,8 @@
+// components/admin/ReservationTable.tsx
 'use client';
 
 import { useTransition } from 'react';
-import { updateReservationStatus } from '@/app/(admin)/actions/reservation/route';
+import { updateReservationStatus, deleteReservation } from '@/app/(admin)/actions/reservation/route';
 
 const statusStyles: Record<string, string> = {
   pending: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -32,6 +33,15 @@ export default function ReservationTable({ initialItems }: { initialItems: DbRes
     });
   };
 
+  const handleDelete = (id: string, name: string) => {
+    if (!window.confirm(`Permanently delete the reservation for "${name}"? This cannot be undone.`)) {
+      return;
+    }
+    startTransition(async () => {
+      await deleteReservation(id);
+    });
+  };
+
   return (
     <div className={`rounded-2xl border border-stone-200/60 bg-white shadow-sm overflow-hidden ${isPending ? 'opacity-60' : ''}`}>
       {!initialItems.length ? (
@@ -53,7 +63,7 @@ export default function ReservationTable({ initialItems }: { initialItems: DbRes
                 <tr key={r.id} className="transition-colors hover:bg-stone-50/50">
                   <td className="px-6 py-4">
                     <div className="font-medium text-stone-800">{r.name}</div>
-                    {r.notes && <div className="text-xs text-amber-600 mt-0.5">“{r.notes}”</div>}
+                    {r.notes && <div className="text-xs text-amber-600 mt-0.5">"{r.notes}"</div>}
                   </td>
                   <td className="px-6 py-4 text-xs text-stone-500">
                     <div>{r.email}</div>
@@ -68,16 +78,16 @@ export default function ReservationTable({ initialItems }: { initialItems: DbRes
                       {r.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 space-x-2">
+                  <td className="px-6 py-4 space-x-2 whitespace-nowrap">
                     {r.status === 'pending' && (
                       <>
-                        <button 
+                        <button
                           onClick={() => handleStatusChange(r.id, 'confirmed')}
                           className="text-xs font-semibold px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
                         >
                           Confirm
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleStatusChange(r.id, 'cancelled')}
                           className="text-xs font-semibold px-2 py-1 bg-stone-100 text-stone-600 rounded hover:bg-stone-200 transition"
                         >
@@ -86,11 +96,27 @@ export default function ReservationTable({ initialItems }: { initialItems: DbRes
                       </>
                     )}
                     {r.status === 'confirmed' && (
-                      <button 
-                        onClick={() => handleStatusChange(r.id, 'completed')}
-                        className="text-xs font-semibold px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition"
+                      <>
+                        <button
+                          onClick={() => handleStatusChange(r.id, 'completed')}
+                          className="text-xs font-semibold px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition"
+                        >
+                          Complete
+                        </button>
+                        <button
+                          onClick={() => handleStatusChange(r.id, 'cancelled')}
+                          className="text-xs font-semibold px-2 py-1 bg-stone-100 text-stone-600 rounded hover:bg-stone-200 transition"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    )}
+                    {(r.status === 'completed' || r.status === 'cancelled') && (
+                      <button
+                        onClick={() => handleDelete(r.id, r.name)}
+                        className="text-xs font-semibold px-2 py-1 bg-red-50 text-red-600 border border-red-100 rounded hover:bg-red-100 transition"
                       >
-                        Complete
+                        Delete
                       </button>
                     )}
                   </td>
