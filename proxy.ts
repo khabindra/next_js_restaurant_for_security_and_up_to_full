@@ -32,8 +32,6 @@ export async function proxy(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  // ADD THIS LINE:
-  console.log(`[Proxy] Checking path: ${request.nextUrl.pathname} | User: ${user?.id || 'Anonymous'}`);
 
   // Enforce lock-down on the admin panel
   if (request.nextUrl.pathname.startsWith('/admin')) {

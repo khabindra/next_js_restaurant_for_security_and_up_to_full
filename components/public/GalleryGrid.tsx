@@ -1,21 +1,3 @@
-// import { GalleryImage } from '@/types/gallery';
-
-// export default function GalleryGrid({ images }: { images: GalleryImage[] }) {
-//   return (
-//     <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-//       {images.map((img) => (
-//         // Again, plain img for now. Use next/image later.
-//         <img
-//           key={img.id}
-//           src={img.src}
-//           alt={img.alt}
-//           className="h-56 w-full rounded-lg object-cover"
-//         />
-//       ))}
-//     </div>
-//   );
-// }
-
 // components/public/GalleryGrid.tsx
 'use client';
 

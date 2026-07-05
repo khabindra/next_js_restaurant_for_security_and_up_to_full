@@ -1,6 +1,6 @@
 // app/(admin)/admin/contacts/page.tsx
 import prisma from '@/lib/prisma';
-import { deleteContact } from '@/app/(admin)/actions/contacts/route';
+import { deleteContact } from '@/app/(admin)/actions/contacts/actions';
 
 export const dynamic = 'force-dynamic';
 

@@ -2,7 +2,7 @@
 'use client';
 
 import { useTransition } from 'react';
-import { updateReservationStatus, deleteReservation } from '@/app/(admin)/actions/reservation/route';
+import { updateReservationStatus, deleteReservation } from '@/app/(admin)/actions/reservation/actions';
 
 const statusStyles: Record<string, string> = {
   pending: 'bg-amber-50 text-amber-700 border-amber-200',

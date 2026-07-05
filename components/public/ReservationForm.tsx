@@ -6,7 +6,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import TextArea from '@/components/ui/TextArea';
 import { isEmail, isPhone } from '@/lib/validations';
-import { createReservationAction } from '@/app/(admin)/actions/reservation/route';
+import { createReservationAction } from '@/app/(admin)/actions/reservation/actions';
 
 type FormErrors = {
   name?: string;

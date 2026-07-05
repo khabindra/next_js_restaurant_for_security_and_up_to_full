@@ -5,7 +5,7 @@ import prisma from '@/lib/prisma';
 import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import {assertAdminUser} from '@/app/(admin)/actions/auth/auth';
+import {assertAdminUser} from '@/app/(admin)/actions/auth/actions';
 
 
 export async function deleteContact(id: string) {

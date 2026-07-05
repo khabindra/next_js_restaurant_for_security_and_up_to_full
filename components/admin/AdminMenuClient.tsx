@@ -7,7 +7,7 @@ import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import TextArea from '@/components/ui/TextArea';
 
-import { createMenuItemAction, deleteMenuItemAction } from '@/app/(admin)/actions/menuitems/route';
+import { createMenuItemAction, deleteMenuItemAction } from '@/app/(admin)/actions/menuitems/actions';
 import { createClient } from '@/utils/supabase/client';
 
 type MenuItem = {

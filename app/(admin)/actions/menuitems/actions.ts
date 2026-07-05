@@ -3,7 +3,7 @@
 
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import {assertAdminUser} from '@/app/(admin)/actions/auth/auth';
+import {assertAdminUser} from '@/app/(admin)/actions/auth/actions';
 
 export async function createMenuItemAction(data: {
   name: string;
