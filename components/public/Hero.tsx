@@ -2,6 +2,7 @@
 // components/public/Hero.tsx
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Hero() {
   return (
@@ -43,18 +44,18 @@ export default function Hero() {
           </div>
 
           {/* Right Column: Image */}
-          {/* Changed lg: to md: for order */}
           <div className="order-1 md:order-2">
-            {/* Changed lg: to md: for max width */}
-            <div className="relative mx-auto w-full max-w-md md:max-w-none">
-              <img
-                // src="https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=2670&auto=format&fit=crop"
-                src="./hero-image.png"
+            <div className="relative mx-auto w-full max-w-md md:max-w-none aspect-[4/5] sm:aspect-square md:aspect-square">
+              <Image
+                src="/image-hero.png"
                 alt="A beautifully plated gourmet Italian dish with fresh ingredients at La Bella Cucina"
-                className="h-auto w-full rounded-2xl object-cover shadow-2xl aspect-[4/5] sm:aspect-square md:aspect-square"
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="rounded-2xl object-cover shadow-2xl"
               />
               
-              {/* Changed lg: to md: for decorative shape position */}
+              {/* Decorative shape remains unchanged */}
               <div 
                 className="absolute -z-10 h-full w-full rounded-2xl bg-amber-100/50 translate-x-4 translate-y-4 md:translate-x-6 md:translate-y-6" 
                 aria-hidden="true" 

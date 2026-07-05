@@ -1,25 +1,25 @@
-// src/app/(admin)/dashboard/gallery/page.tsx
+// app/(admin)/admin/gallery/page.tsx
 import prisma from '@/lib/prisma';
 import AdminGalleryClient from '@/components/admin/AdminGalleryClient';
-import { GalleryImage } from '@/types/gallery';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 0; // Force immediate revalidation on management layer
 
-export default async function AdminGalleryPage() {
-  const allImages = await prisma.galleryImage.findMany({
-    orderBy: { createdAt: 'desc' },
+export default async function GalleryAdminPage() {
+  const galleryItems = await prisma.galleryImage.findMany({
+    orderBy: { category: 'asc' },
   });
 
   return (
-    <div className="p-6 md:p-10 space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-neutral-900">Gallery Administration</h1>
-        <p className="text-xs text-neutral-500 mt-1">
-          Perform live create, read, and delete operations on your restaurant's global public web asset arrays.
+        <p className="text-xs font-semibold uppercase tracking-widest text-neutral-400 mb-1.5">Media Studio</p>
+        <h2 className="text-2xl font-bold tracking-tight text-neutral-900">Gallery Management</h2>
+        <p className="mt-1 text-sm text-neutral-500">
+          Upload new display assets, update description strings, or clear imagery records from the customer showcase grid.
         </p>
       </div>
 
-      <AdminGalleryClient initialImages={allImages as GalleryImage[]} />
+      <AdminGalleryClient initialItems={JSON.parse(JSON.stringify(galleryItems))} />
     </div>
   );
 }

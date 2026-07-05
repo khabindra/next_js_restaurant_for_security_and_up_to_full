@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function AboutPage() {
   return (
@@ -88,10 +89,13 @@ export default function AboutPage() {
         <div className="grid gap-12 md:grid-cols-5 items-center">
           {/* Chef Image Placeholder */}
           <div className="md:col-span-2 relative aspect-[4/5] w-full max-w-sm mx-auto md:mx-0 rounded-2xl overflow-hidden bg-stone-100">
-            <img
-              src="https://images.unsplash.com/photo-1577219491135-ce391730fb2c?q=80&w=987&auto=format&fit=crop"
-              alt="Head Chef Marco Rossi preparing fresh pasta in the kitchen"
-              className="h-full w-full object-cover"
+            <Image
+              src="https://images.unsplash.com/photo-1577219491135-ce391730fb2c?q=80&w=987&auto=format&fit=crop" // Maps directly to your local file in public/ folder. Switch to .webp once compressed!
+              alt="Executive Chef Marco Rossi precisely plating a seasonal dish under copper heat lamps in the kitchen"
+              fill
+              loading="lazy" // Since this section is far below the fold, lazy loading saves initial page load bandwidth
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 40vw, 350px"
+              className="object-cover object-center"
             />
           </div>
           

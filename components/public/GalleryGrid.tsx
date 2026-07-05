@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import Image from 'next/image';
 import { GalleryImage } from '@/types/gallery';
 
 const CATEGORIES = [
@@ -63,11 +64,13 @@ export default function GalleryGrid({ initialImages }: { initialImages: GalleryI
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {paginatedImages.map((img) => (
-            <div key={img.id} className="group cursor-pointer overflow-hidden rounded-md bg-neutral-50 border border-neutral-100">
-              <img
+            <div key={img.id} className="group relative h-56 overflow-hidden rounded-md bg-neutral-50 border border-neutral-100 cursor-pointer">
+              <Image
                 src={img.src}
                 alt={img.alt || 'Restaurant capture image'}
-                className="h-56 w-full object-cover grayscale-[20%] contrast-[105%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                className="object-cover grayscale-[20%] contrast-[105%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
                 loading="lazy"
               />
             </div>

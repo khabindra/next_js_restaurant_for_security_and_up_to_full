@@ -1,162 +1,199 @@
-// src/components/admin/AdminGalleryClient.tsx
+// components/admin/AdminGalleryClient.tsx
 'use client';
 
-import { useState } from 'react';
-import { createClient } from '@/utils/supabase/client';
+import { useState, useTransition, useMemo } from 'react';
+import Image from 'next/image';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import Modal from '@/components/ui/Modal';
+import Input from '@/components/ui/Input';
+
 import { GalleryImage } from '@/types/gallery';
+import { createGalleryImageAction, deleteGalleryImageAction } from '@/app/(admin)/actions/gallery/actions';
 
-export default function AdminGalleryClient({ initialImages }: { initialImages: GalleryImage[] }) {
-  const [images, setImages] = useState<GalleryImage[]>(initialImages);
-  const [isUploading, setIsUploading] = useState(false);
-  const [altText, setAltText] = useState('');
-  const [category, setCategory] = useState<'food' | 'restaurant' | 'event'>('food');
+const ITEMS_PER_PAGE = 12;
+
+export default function AdminGalleryClient({ initialItems }: { initialItems: GalleryImage[] }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [file, setFile] = useState<File | null>(null);
+  const [form, setForm] = useState<{ alt: string; category: 'food' | 'restaurant' | 'event' }>({ 
+    alt: '', 
+    category: 'food' 
+  });
+  
+  const [uiAlert, setUiAlert] = useState<{ message: string; isError: boolean } | null>(null);
+  const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
+  const [brokenImages, setBrokenImages] = useState<Record<string, boolean>>({});
+  
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const supabase = createClient();
+  const filteredItems = useMemo(() => {
+    return selectedCategory === 'all' 
+      ? initialItems 
+      : initialItems.filter((item) => item.category === selectedCategory);
+  }, [initialItems, selectedCategory]);
 
-  const handleCreateImage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!file || !altText) return alert('Provide both media file attachment and context alt descriptions.');
+  const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE) || 1;
+  const validatedPage = Math.min(currentPage, totalPages);
+  const startIndex = (validatedPage - 1) * ITEMS_PER_PAGE;
+  
+  const paginatedItems = useMemo(() => {
+    return filteredItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredItems, startIndex]);
 
-    setIsUploading(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `gallery/${fileName}`;
-
-      // 1. Upload the physical binary file array to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from('restaurant_gallery')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      // 2. Fetch its structured CDN URL endpoint path
-      const { data: urlData } = supabase.storage
-        .from('restaurant_gallery')
-        .getPublicUrl(filePath);
-
-      // 3. Save reference configuration directly inside database indexing
-      const response = await fetch('/api/gallery', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ src: urlData.publicUrl, alt: altText, category }),
-      });
-
-      if (!response.ok) throw new Error('Failed tracking registration details inside API routes');
-
-      const savedItem = await response.json();
-      setImages([savedItem, ...images]);
-      
-      // Reset local interface input fields safely
-      setAltText('');
-      setFile(null);
-      (document.getElementById('galleryFileInput') as HTMLInputElement).value = '';
-      alert('Asset preserved safely.');
-    } catch (err: any) {
-      alert(`Operation interrupted: ${err.message}`);
-    } finally {
-      setIsUploading(false);
-    }
+  const handleOpenCreateModal = () => {
+    setForm({ alt: '', category: 'food' });
+    setFile(null);
+    setUiAlert(null);
+    setIsOpen(true);
   };
 
-  const handleDeleteImage = async (id: string, storageSrc: string) => {
-    if (!confirm('Permanently clear this selection from verification logs?')) return;
+  const handleModalClose = () => {
+    setIsOpen(false);
+    setForm({ alt: '', category: 'food' });
+    setFile(null);
+    setUiAlert(null);
+  };
 
-    try {
-      // Extract inner file path from storage public URLs
-      const pathSegments = storageSrc.split('/storage/v1/object/public/restaurant_gallery/');
-      if (pathSegments.length === 2) {
-        await supabase.storage.from('restaurant_gallery').remove([pathSegments[1]]);
-      }
-
-      // Drop indexing from core relational model fields
-      const res = await fetch(`/api/gallery?id=${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Target removal interrupted across database lines.');
-
-      setImages(images.filter((img) => img.id !== id));
-    } catch (err: any) {
-      alert(`Deletion interrupted: ${err.message}`);
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUiAlert(null);
+    if (!file) {
+      setUiAlert({ message: 'An image file asset must be selected first.', isError: true });
+      return;
     }
+    startTransition(async () => {
+      const submissionData = new FormData();
+      submissionData.append('alt', form.alt);
+      submissionData.append('category', form.category);
+      submissionData.append('file', file);
+      const result = await createGalleryImageAction(submissionData);
+      if (result?.success) {
+        handleModalClose();
+        setUiAlert({ message: '✨ Media asset successfully published!', isError: false });
+      } else {
+        setUiAlert({ message: result?.error || 'Database sync failure.', isError: true });
+      }
+    });
+  };
+
+  const handleConfirmDelete = (id: string, storageSrc: string) => {
+    setUiAlert(null);
+    startTransition(async () => {
+      const result = await deleteGalleryImageAction(id, storageSrc);
+      if (result.success) {
+        setDeletingItemId(null);
+        setUiAlert({ message: 'Media reference removed.', isError: false });
+      } else {
+        setUiAlert({ message: result.error || 'Failed to delete.', isError: true });
+      }
+    });
   };
 
   return (
-    <div className="space-y-12">
-      {/* Upload Interface Panel */}
-      <form onSubmit={handleCreateImage} className="bg-white border border-neutral-100 p-6 rounded-md max-w-xl space-y-4">
-        <h3 className="text-sm font-semibold text-neutral-800 uppercase tracking-wider">Upload New Image</h3>
-        
-        <div>
-          <label className="block text-xs text-neutral-500 mb-1">Image File</label>
-          <input
-            id="galleryFileInput"
-            type="file"
-            accept="image/*"
-            onChange={(e) => setFile(e.target.files?.[0] || null)}
-            className="w-full text-xs text-neutral-600 file:mr-4 file:py-2 file:px-4 file:rounded-sm file:border-0 file:text-xs file:font-medium file:bg-neutral-100 file:text-neutral-700 hover:file:bg-neutral-200"
-            required
-          />
+    <div className="space-y-5 w-full max-w-full overflow-hidden">
+      {uiAlert && !uiAlert.isError && (
+        <div className="p-4 rounded-xl text-sm font-medium border bg-emerald-50 text-emerald-800 border-emerald-200">
+          {uiAlert.message}
         </div>
+      )}
 
-        <div>
-          <label className="block text-xs text-neutral-500 mb-1">Alt Text (Description)</label>
-          <input
-            type="text"
-            value={altText}
-            onChange={(e) => setAltText(e.target.value)}
-            placeholder="e.g. Guest tables near the west terrace window"
-            className="w-full text-xs border border-neutral-200 rounded-sm p-2 outline-none focus:border-neutral-400"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs text-neutral-500 mb-1">Category Space</label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value as any)}
-            className="w-full text-xs border border-neutral-200 rounded-sm p-2 outline-none focus:border-neutral-400 bg-white"
+      {/* Control Station */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-white p-4 rounded-xl border border-stone-200/80 shadow-sm">
+        <div className="relative w-full sm:max-w-xs">
+          <select 
+            className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm font-medium bg-stone-50/50 cursor-pointer h-[42px]" 
+            value={selectedCategory} 
+            onChange={(e) => { setSelectedCategory(e.target.value); setCurrentPage(1); }}
           >
-            <option value="food">Food Selection</option>
-            <option value="restaurant">Restaurant Interior</option>
-            <option value="event">Private Event Space</option>
+            <option value="all">All Categories</option>
+            <option value="food">Food</option>
+            <option value="restaurant">Restaurant</option>
+            <option value="event">Event</option>
           </select>
         </div>
+        <Button onClick={handleOpenCreateModal} className="w-full sm:w-auto h-10 shadow-sm">
+          + Upload Media
+        </Button>
+      </div>
 
-        <button
-          type="submit"
-          disabled={isUploading}
-          className="w-full bg-neutral-900 text-white text-xs uppercase tracking-widest py-2.5 rounded-sm hover:bg-neutral-800 transition-colors disabled:opacity-40"
-        >
-          {isUploading ? 'Uploading to Cloud Store...' : 'Commit to Production Gallery'}
-        </button>
-      </form>
-
-      {/* Production Administration Grid Interface */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-neutral-800 uppercase tracking-wider">Active Inventory</h3>
-        <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {images.map((img) => (
-            <div key={img.id} className="relative group border border-neutral-100 rounded-md p-2 bg-white flex flex-col justify-between">
-              <div>
-                <img src={img.src} alt={img.alt} className="h-40 w-full object-cover rounded-sm" />
-                <div className="mt-2 space-y-0.5">
-                  <p className="text-[11px] font-medium text-neutral-800 truncate">{img.alt}</p>
-                  <span className="inline-block text-[9px] uppercase tracking-wider px-1.5 py-0.5 bg-neutral-100 text-neutral-500 rounded-full">
-                    {img.category}
-                  </span>
-                </div>
+      {filteredItems.length === 0 ? (
+        <div className="text-center py-16 bg-stone-50 rounded-2xl border border-dashed border-stone-200">
+          <h3 className="text-sm font-semibold text-stone-900">No media assets found</h3>
+        </div>
+      ) : (
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 w-full">
+          {paginatedItems.map((item,index) => (
+            <Card key={item.id} className="flex flex-col justify-between p-4 bg-white border border-stone-200 rounded-xl">
+              <div className="relative h-44 w-full mb-3 rounded-lg overflow-hidden bg-stone-100">
+                <Image 
+                  src={brokenImages[item.id] || !item.src ? 'https://placehold.co/600x400?text=Unavailable' : item.src} 
+                  alt={item.alt} 
+                  fill 
+                  className="object-cover" 
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" 
+                  
+                  // FIX: Only apply priority to the very first image in the grid.
+                  // Next.js will automatically make the rest lazy-loaded.
+                  priority={index === 0} 
+                  
+                  onError={() => setBrokenImages(prev => ({ ...prev, [item.id]: true }))}
+                />
               </div>
-              <button
-                onClick={() => handleDeleteImage(img.id, img.src)}
-                className="mt-3 w-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors py-1 rounded-sm text-[10px] uppercase tracking-wider font-medium"
-              >
-                Delete File
-              </button>
-            </div>
+              <span className="text-[10px] font-bold uppercase bg-zinc-100 px-2 py-0.5 rounded-md w-fit mb-2">
+                {item.category}
+              </span>
+              <p className="text-xs text-stone-500 line-clamp-2 min-h-[2rem]">{item.alt}</p>
+              <div className="mt-4 pt-3 border-t">
+                {deletingItemId === item.id ? (
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="danger" onClick={() => handleConfirmDelete(item.id, item.src)} className="w-full">Yes</Button>
+                    <Button size="sm" variant="secondary" onClick={() => setDeletingItemId(null)} className="w-full">No</Button>
+                  </div>
+                ) : (
+                  <Button size="sm" variant="danger" onClick={() => setDeletingItemId(item.id)} className="w-full">Delete File</Button>
+                )}
+              </div>
+            </Card>
           ))}
         </div>
-      </div>
+      )}
+
+      {/* Responsive Pagination */}
+      {totalPages > 1 && (
+        <div className="flex flex-col items-center gap-4 pt-4 border-t w-full">
+          <p className="text-xs text-stone-500 font-medium">
+            Showing {startIndex + 1} to {Math.min(startIndex + ITEMS_PER_PAGE, filteredItems.length)} of {filteredItems.length}
+          </p>
+          <div className="flex items-center gap-1 w-full justify-center flex-wrap">
+            <Button size="sm" variant="secondary" disabled={validatedPage === 1 || isPending} onClick={() => setCurrentPage(p => p - 1)}>Prev</Button>
+            <div className="flex items-center gap-1 overflow-x-auto max-w-[200px] sm:max-w-none px-2 scrollbar-none">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button key={page} onClick={() => setCurrentPage(page)} className={`h-8 w-8 text-xs font-semibold rounded-lg shrink-0 ${page === validatedPage ? 'bg-neutral-900 text-white' : 'bg-white border'}`}>
+                  {page}
+                </button>
+              ))}
+            </div>
+            <Button size="sm" variant="secondary" disabled={validatedPage === totalPages || isPending} onClick={() => setCurrentPage(p => p + 1)}>Next</Button>
+          </div>
+        </div>
+      )}
+
+      <Modal open={isOpen} onClose={handleModalClose} title="Upload New Gallery Image">
+        <form onSubmit={handleFormSubmit} className="space-y-4 pt-2">
+          {uiAlert?.isError && <div className="p-3.5 rounded-xl text-xs font-semibold bg-red-50 text-red-800 border">{uiAlert.message}</div>}
+          <Input id="alt" label="Alt Text" placeholder="Caption..." required value={form.alt} onChange={e => setForm({ ...form, alt: e.target.value })} />
+          <select className="w-full rounded-lg border px-3 py-2.5 text-sm" value={form.category} onChange={e => setForm({ ...form, category: e.target.value as any })}>
+            <option value="food">Food</option>
+            <option value="restaurant">Restaurant</option>
+            <option value="event">Event</option>
+          </select>
+          <input type="file" accept="image/*" required onChange={e => setFile(e.target.files?.[0] || null)} className="w-full text-sm p-1.5 border rounded-lg" />
+          <Button type="submit" className="w-full mt-4" disabled={isPending}>{isPending ? 'Uploading...' : 'Upload Asset'}</Button>
+        </form>
+      </Modal>
     </div>
   );
 }
