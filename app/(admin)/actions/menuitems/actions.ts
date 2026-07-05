@@ -1,4 +1,4 @@
-// app/(admin)/actions/menuitems/route.ts
+// app/(admin)/actions/menuitems/actions.ts
 "use server";
 
 import prisma from '@/lib/prisma';
