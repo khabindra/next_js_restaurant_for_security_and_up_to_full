@@ -26,22 +26,44 @@ export default function ReservationForm() {
     time: '',
     guests: 2,
     notes: '',
-    honeypot: '', // ⚡ Added honeypot to state
+    honeypot: '',
   });
   
   const [errors, setErrors] = useState<FormErrors>({});
-  const [serverError, setServerError] = useState<string | null>(null); // ⚡ Added server error state
+  const [serverError, setServerError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validate = (): boolean => {
     const e: FormErrors = {};
+    
     if (!form.name.trim()) e.name = 'Please provide your name';
     if (!isEmail(form.email)) e.email = 'A valid email is required';
     if (!isPhone(form.phone)) e.phone = 'A valid phone number is required';
-    if (!form.date) e.date = 'Please select a date';
-    if (!form.time) e.time = 'Please select a time';
     if (!form.guests || form.guests < 1) e.guests = 'At least 1 guest is required';
+
+    // Date Validation (Format & Past Date)
+    if (!form.date) {
+      e.date = 'Please select a date';
+    } else {
+      const selectedDate = new Date(form.date + 'T00:00:00');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (isNaN(selectedDate.getTime())) {
+        e.date = 'Invalid date format';
+      } else if (selectedDate < today) {
+        e.date = 'Reservations cannot be made in the past';
+      }
+    }
+
+    // Time Validation (Format only)
+    if (!form.time) {
+      e.time = 'Please select a time';
+    } else if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(form.time)) {
+      e.time = 'Invalid time format';
+    }
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -53,7 +75,6 @@ export default function ReservationForm() {
 
     setIsSubmitting(true);
     
-    // Pass the entire form state, including the honeypot
     const result = await createReservationAction(form);
     
     setIsSubmitting(false);
@@ -61,7 +82,6 @@ export default function ReservationForm() {
     if (result.success) {
       setSuccess(true);
     } else {
-      // Capture ratelimit or server errors to show to the user
       setServerError(result.error || 'Something went wrong. Please try again.');
     }
   };
@@ -94,14 +114,12 @@ export default function ReservationForm() {
   return (
     <form onSubmit={handleSubmit} className="w-full space-y-6 md:space-y-8">
       
-      {/* ⚡ Display server/rate-limit errors gracefully */}
       {serverError && (
         <div className="p-4 rounded-md bg-red-50 border border-red-100 text-sm text-red-600">
           {serverError}
         </div>
       )}
 
-      {/* ⚡ HONEYPOT FIELD (Hidden from real users, visible to bots) */}
       <div 
         className="absolute left-[-9999px] top-[-9999px]" 
         aria-hidden="true"

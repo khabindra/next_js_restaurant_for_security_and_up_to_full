@@ -91,7 +91,7 @@ export default function ModernMenuDisplay({ items }: { items: MenuItem[] }) {
                       {item.name}
                     </h3>
                     <span className="text-[11px] font-light tracking-wide text-neutral-500 whitespace-nowrap tabular-nums">
-                      Rs: {item.price.toLocaleString()}
+                      AED: {item.price.toLocaleString()}
                     </span>
                   </div>
                   <p className="text-[11px] font-light leading-relaxed text-neutral-400 line-clamp-2">

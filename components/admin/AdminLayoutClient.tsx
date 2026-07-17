@@ -29,7 +29,7 @@ export default function AdminLayoutClient({ children, userEmail }: AdminLayoutCl
       {/* 📱 Mobile/Tablet Top Navbar header */}
       <header className="flex h-16 items-center justify-between border-b bg-white px-6 shadow-sm lg:hidden shrink-0">
         <div>
-          <h2 className="font-serif text-lg font-semibold text-neutral-900">La Bella Cucina</h2>
+          <h2 className="font-serif text-lg font-semibold text-neutral-900">Kings Noodles Restaurant</h2>
           <p className="text-[10px] text-neutral-400 uppercase tracking-wider font-medium">Hub</p>
         </div>
         
@@ -63,7 +63,7 @@ export default function AdminLayoutClient({ children, userEmail }: AdminLayoutCl
         <div className="space-y-8">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="font-serif text-xl font-semibold text-neutral-900">La Bella Cucina</h2>
+              <h2 className="font-serif text-xl font-semibold text-neutral-900">Kings Noodles Restaurant</h2>
               <p className="text-xs text-neutral-400 mt-1 uppercase tracking-wider font-medium">Management Hub</p>
             </div>
             {/* Mobile Sidebar Close Button */}

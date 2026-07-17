@@ -1,4 +1,4 @@
-// app/(admin)/actions/reservation/route.ts
+// app/(admin)/actions/reservation/actions.ts
 'use server';
 
 import prisma from '@/lib/prisma';
@@ -74,8 +74,6 @@ export async function updateReservationStatus(id: string, status: 'confirmed' | 
   }
 }
 
-// app/(admin)/actions/reservation/route.ts
-// ... keep your existing imports and functions ...
 
 // Add this at the bottom of the file
 export async function deleteReservation(id: string) {
