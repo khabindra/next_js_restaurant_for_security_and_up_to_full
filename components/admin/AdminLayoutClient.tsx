@@ -21,6 +21,7 @@ export default function AdminLayoutClient({ children, userEmail }: AdminLayoutCl
     { href: '/admin/reservation', label: 'Reservations' },
     { href: '/admin/menu', label: 'Menu' },
     { href: '/admin/gallery', label: 'Gallery' },
+    { href: '/admin/settings', label: 'Settings'},
   ];
 
   return (

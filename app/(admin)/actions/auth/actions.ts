@@ -1,51 +1,3 @@
-// // app/(admin)/actions/auth/auth.ts
-// 'use server';
-
-// import prisma from '@/lib/prisma';
-// import { createClient } from '@/utils/supabase/server';
-// import { revalidatePath } from 'next/cache';
-// import { redirect } from 'next/navigation';
-
-// export async function assertAdminUser() {
-//   const supabase = await createClient();
-//   const { data: { user } } = await supabase.auth.getUser();
-
-//   if (!user || user.id !== process.env.ADMIN_UUID) {
-//     throw new Error('Unauthorized authorization context');
-//   }
-//   return user;
-// }
-
-// export async function login(formData: FormData) {
-//   const email = formData.get('email') as string;
-//   const password = formData.get('password') as string;
-//   const supabase = await createClient();
-
-//   // 1. Attempt to sign in with Supabase
-//   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-//   if (error) {
-//     redirect('/login?error=Invalid credentials');
-//   }
-
-//   // 2. Hard check against .env before letting them proceed to dashboard
-//   if (data.user?.id !== process.env.ADMIN_UUID) {
-//     await supabase.auth.signOut(); // Wipe session if they aren't the designated admin
-//     redirect('/login?error=Unauthorized account access');
-//   }
-
-//   // 3. Success path
-//   revalidatePath('/', 'layout');
-//   redirect('/admin');
-// }
-
-// export async function signOut() {
-//   const supabase = await createClient();
-//   await supabase.auth.signOut();
-//   redirect('/login');
-// }
-
-
 'use server';
 
 import { createClient } from '@/utils/supabase/server';
@@ -138,4 +90,79 @@ export async function signOut() {
   console.log('🔵 [AUTH] Success: Admin signed out.');
   revalidatePath('/', 'layout');
   redirect('/login');
+}
+
+
+// update the current password of owner only if authenticated
+
+import { createClient as createServerSupabaseClient } from '@/utils/supabase/server';
+import { createClient as createStatelessClient } from '@supabase/supabase-js';
+
+const PasswordUpdateSchema = z.object({
+  currentPassword: z.string().min(1, "invalid current password"),
+  newPassword: z.string().min(6, "New password must be at least 6 characters."),
+  confirmPassword: z.string().min(6, "Confirm password is required.")
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "new and confirm password is not matched",
+  path: ["confirmPassword"],
+});
+
+export async function updatePasswordAction(formData: FormData) {
+  // 1. Force authorization check OUTSIDE the try-catch 
+  // (because assertAdminUser uses Next.js redirect(), which throws an error internally)
+  const user = await assertAdminUser();
+
+  try {
+    // 2. Validate input fields via Zod
+    const validation = PasswordUpdateSchema.safeParse({
+      currentPassword: formData.get('currentPassword'),
+      newPassword: formData.get('newPassword'),
+      confirmPassword: formData.get('confirmPassword'),
+    });
+
+    if (!validation.success) {
+      return { success: false, error: validation.error.issues[0].message };
+    }
+
+    const { currentPassword, newPassword } = validation.data;
+
+    if (!user.email) {
+      return { success: false, error: "System error: User email not found." };
+    }
+
+    // 3. Verify CURRENT password (STATELESS)
+    const statelessSupabase = createStatelessClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { auth: { persistSession: false } }
+    );
+
+    const { error: verifyError } = await statelessSupabase.auth.signInWithPassword({
+      email: user.email,
+      password: currentPassword,
+    });
+
+    if (verifyError) {
+      // Return the exact requested string
+      return { success: false, error: "invalid current password" };
+    }
+
+    // 4. Update to NEW password (SSR Client)
+    const serverSupabase = await createServerSupabaseClient();
+    const { error: updateError } = await serverSupabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (updateError) {
+      console.error(`🔴 [AUTH] Update Error: ${updateError.message}`);
+      return { success: false, error: "Failed to update password in database." };
+    }
+
+    console.log(`🟢 [AUTH] Success: Admin password updated successfully.`);
+    return { success: true, error: null };
+
+  } catch (error) {
+    console.error("🔴 [AUTH] Critical Server Action Error:", error);
+    return { success: false, error: "An unexpected server error occurred." };
+  }
 }

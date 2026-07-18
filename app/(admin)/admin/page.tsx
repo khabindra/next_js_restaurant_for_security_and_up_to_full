@@ -54,6 +54,11 @@ export default async function AdminDashboard() {
       desc: "Review and respond to guest messages, private event requests, and general feedback submissions.",
       href: "/admin/contacts"
     },
+    {
+      title: "Change Password",
+      desc: "Update the current password",
+      href: "/admin/settings"
+    }
   ];
 
   return (
